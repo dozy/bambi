@@ -291,6 +291,7 @@ static void free_opts(opts_t *opts)
     free(opts->in_bam_file);
     free(opts->tileArray);
     free(opts->tileReadCountArray);
+    free(opts->regions);
     free(opts->working_dir);
     free(opts->output);
     free(opts->apply_stats_out);
@@ -439,7 +440,8 @@ static void report(opts_t *opts, int ntiles)
     fprintf(fp, "</html>\n");
 
     fclose(fp);
-    
+    free(filename);
+
     return;
 }
 
@@ -1414,10 +1416,7 @@ static void calculateFilter(opts_t *opts)
 
     if (opts->tileviz) tileviz(opts, ntiles, rts);
     
-    free(opts->tileArray);
-    free(opts->tileReadCountArray);
     HashTableDestroy(opts->region_hash, 0);
-    free(opts->regions);
 	freeRTS(opts, ntiles, rts);
 }
 
@@ -1580,7 +1579,7 @@ opts_t* spatial_filter_parse_args(int argc, char *argv[])
         {"snp-file", 1, 0, 's'},
         {"help", 0, 0, 'h'},
         {"filter", 1, 0, 'F'},
-        {"version", 0, 0, 'v'},
+        {"verbose", 0, 0, 'v'},
         {"region_size", 1, 0, 'r'},
         {"region-size", 1, 0, 'r'},
         {"region_mismatch_threshold", 1, 0, 'z'},
