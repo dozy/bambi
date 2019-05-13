@@ -38,17 +38,16 @@ int bam_aux_update_str(bam1_t *b, const char tag[2], int len, const char *data)
     bam_aux_del(b,s);
     s -= 2;
     int l_aux = bam_get_l_aux(b);
-    uint8_t *aux = bam_get_aux(b);
 
     b->l_data += 3 + len;
     if (b->m_data < b->l_data) {
-        ptrdiff_t s_offset = (ptrdiff_t) (s - b->m_data);
+        ptrdiff_t s_offset = (ptrdiff_t) (s - b->data);
         b->m_data = b->l_data;
         kroundup32(b->m_data);
         b->data = (uint8_t*)realloc(b->data, b->m_data);
-        s = (uint8_t *) (b->m_data + s_offset);
+        s = (uint8_t *) (b->data + s_offset);
     }
-    memmove(s+3+len, s, l_aux - (s - aux));
+    memmove(s+3+len, s, l_aux - (s - bam_get_aux(b)));
     s[0] = tag[0];
     s[1] = tag[1];
     s[2] = type;
@@ -61,7 +60,7 @@ int bam_aux_update_str(bam1_t *b, const char tag[2], int len, const char *data)
 SAM_hdr *sam_hdr_del(SAM_hdr *hdr, char *type, char *ID_key, char *ID_value) {
     int i,n;
     int *lines;
-    char *newtext = malloc(sam_hdr_length(hdr)+1);
+    char *newtext = malloc(sam_hdr_length(hdr)+15);
 
     lines = ksplit(&hdr->text,'\n',&n);
     *newtext = 0;

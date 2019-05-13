@@ -23,26 +23,59 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <stdint.h>
 #include <zlib.h>
-
-typedef enum { BCL, SCL } BCL_FILE_TYPE;
+#include "array.h"
+#include "filterfile.h"
+#include "bambi.h"
 
 typedef struct {
-    BCL_FILE_TYPE file_type;
-    int fhandle;
+    uint32_t  tilenum;
+    uint32_t  nclusters;
+    uint32_t  uncompressed_blocksize;
+    uint32_t  compressed_blocksize;
+} tilerec_t;
+    
+typedef struct {
+    MACHINE_TYPE machine_type;
+    FILE *fhandle;
     gzFile gzhandle;
     char *errmsg;
+    int is_cached;
     uint32_t total_clusters;
-    int current_cluster;
     int current_base;
+
+    int bases_size;
+    int base_ptr;
+    char *bases;
+    char *quals;
     char base;
     int quality;
-char *filename;
+    char *filename;
+
+    char current_byte;
+    int block_index;
+    // CBCL specific fields
+    uint16_t version;
+    uint32_t header_size;
+    unsigned char bits_per_base;
+    unsigned char bits_per_qual;
+    uint32_t nbins;
+    int qbin[4];
+    uint32_t ntiles;
+    tilerec_t *current_tile;
+    va_t *tiles;
+    char *current_block;
+    char *current_block_ptr;
+    uint32_t current_block_size;
+    char pfFlag;
+    int surface;
+    int fails;
 } bclfile_t;
 
-bclfile_t *bclfile_open(char *fname);
-int bclfile_next(bclfile_t *bclfile);
+int bcl_tile2surface(int tile);
+bclfile_t *bclfile_open(char *fname, MACHINE_TYPE mt);
 void bclfile_close(bclfile_t *bclfile);
-void bclfile_seek(bclfile_t *bclfile, int cluster);
-
+int bclfile_load_tile(bclfile_t *bclfile, int tile, filter_t *filter);
+char bclfile_base(bclfile_t *bcl, int cluster);
+int bclfile_quality(bclfile_t *bcl, int cluster);
 #endif
 
